@@ -87,7 +87,8 @@ class Recipe(models.Model):
         return self.name
 
 
-    class Follow(models.Model):
+
+class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -95,15 +96,15 @@ class Recipe(models.Model):
         verbose_name='Подписчик'
     )
     author = models.ForeignKey(
-        User,
+        Recipe,
         on_delete=models.CASCADE,
-        related_name='following',
-        verbose_name='Автор'
+        related_name='favorite',
+        verbose_name='Избранное'
     )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'], name='unique_follow'
+                fields=['user', 'author'], name='unique_favorite'
             )
-        ]
+        ] 
