@@ -9,6 +9,7 @@ class Tag(models.Model):
         max_length=150, unique=True, blank=False,
         null=False, verbose_name='Название тега')
     color = models.CharField(
+        max_length=200,
         unique=True, blank=False,
         null=False, verbose_name='Цвет тега')
     slug = models.CharField(
@@ -38,9 +39,10 @@ class Ingredient(models.Model):
         return self.name
 
 class Amount(models.Model):
-    ingredient = models.ForeignKey(
+    ingredient_measure = models.ForeignKey(
         Ingredient, related_name='amount',
-        verbose_name='Ингредиент'
+        verbose_name='Ингредиент',
+        on_delete=models.CASCADE
     )
     amount = models.IntegerField(
         verbose_name='Количество в рецепте')
@@ -61,12 +63,12 @@ class Recipe(models.Model):
         Amount, related_name='ingredient',
         verbose_name='Ингредиент',
         db_index=True,
-        on_delete=models.CASCADE
     )
     tags = models.ManyToManyField(
         Tag, related_name='recipes',
         verbose_name='Тег', db_index=True)
     image = models.CharField(
+        max_length=200,
         verbose_name='Изображение')
     name = models.CharField(
         max_length=200,  db_index=True,
