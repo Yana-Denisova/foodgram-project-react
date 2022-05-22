@@ -6,3 +6,4 @@ typing-extensions==4.2.0
 djangorestframework==3.13.1
 djangorestframework-simplejwt==4.8.0
 djoser==2.1.0
+django-extra-fields==3.0.2

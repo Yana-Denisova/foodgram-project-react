@@ -1,6 +1,9 @@
 from django.contrib import admin
 
-from .models import Tag, Ingredient, Recipe
+
+from users.models import User, Follow
+
+from .models import Tag, Ingredient, Recipe, IngredientAmount, Favorite
 
 class TagAdmin(admin.ModelAdmin):
     list_display = ('pk', 'name', 'color', 'slug')
@@ -13,7 +16,16 @@ class IngredientAdmin(admin.ModelAdmin):
 
 admin.site.register(Ingredient, IngredientAdmin)
 
+
+class IngredientAmountInLine(admin.TabularInline):
+    model = Recipe.ingredients.through
+    extra = 1
+
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('author', 'image', 'name', 'text', 'cooking_time')
-    filter_horizontal = ('tags', 'ingredients')
+    inlines = (IngredientAmountInLine,)
+
 admin.site.register(Recipe, RecipeAdmin)
+admin.site.register(User)
+admin.site.register(Follow)
+admin.site.register(Favorite)

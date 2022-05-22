@@ -3,8 +3,8 @@ from django.contrib.auth import get_user_model
 from .serializers import FollowerListSerializer
 from rest_framework import generics, permissions, views
 from django.shortcuts import get_object_or_404
-
-User = get_user_model()
+from .models import User
+#User = get_user_model()
 
 
 class FollowerListView(generics.ListAPIView):
