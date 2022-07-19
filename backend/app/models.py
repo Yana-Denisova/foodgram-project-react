@@ -59,7 +59,8 @@ class Recipe(models.Model):
     image = models.ImageField(
         'Картинка',
         upload_to='recipes/images/',
-        blank=True
+        blank=True,
+        null=True
     )
     name = models.CharField(
         max_length=200,  db_index=True,

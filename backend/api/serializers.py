@@ -30,9 +30,7 @@ class CustomUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
-        if Follow.objects.filter(author=obj.id).exists():
-            return True
-        return False
+        return Follow.objects.filter(author=obj.id).exists()
 
     class Meta:
         fields = ('email', 'id', 'username',
@@ -55,8 +53,7 @@ class FollowerListSerializer(UserSerializer):
         return Recipe.objects.filter(author=author_id).count()
 
     def get_is_subscribed(self, obj):
-        if Follow.objects.filter(author=obj.author, user=obj.user).exists():
-            return True
+        return Follow.objects.filter(author=obj.author, user=obj.user).exists()
 
     class Meta:
         model = Follow
@@ -96,9 +93,9 @@ class RecipePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
+        read_only_fields = ('image',)
 
-    def create(self, validated_data):
-        print(validated_data)
+    def create(self, validated_data, *args):
         ingredients = validated_data.pop('ingredient_amount')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
@@ -112,6 +109,22 @@ class RecipePostSerializer(serializers.ModelSerializer):
                 ingredients=current_ingredient,
                 recipe=recipe, amount=ingredient_amount)
         return recipe
+
+    def update(self, instance, validated_data):
+        instance.tags.clear()
+        ingredients = validated_data.pop('ingredient_amount')
+        tags = validated_data.pop('tags')
+        instance.tags.set(tags)
+        IngredientAmount.objects.filter(recipe=instance).delete()
+        for ingredient in ingredients:
+            ingredient_id = ingredient['ingredients']['id']
+            ingredient_amount = ingredient['amount']
+            current_ingredient = get_object_or_404(
+                                Ingredient, pk=ingredient_id)
+            IngredientAmount.objects.create(
+                ingredients=current_ingredient,
+                recipe=instance, amount=ingredient_amount)
+        return super().update(instance, validated_data)
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):

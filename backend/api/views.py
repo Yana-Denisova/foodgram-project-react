@@ -5,16 +5,16 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
 from djoser.views import UserViewSet
 from fpdf import FPDF
-import django_filters
+
 
 from app.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
 from .paginations import CustomPagination
+from .filters import CustomFilter
 from .serializers import (CustomUserSerializer, FavoriteSerializer,
                           FollowerListSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
@@ -78,29 +78,11 @@ class IngredientViewSet(viewsets.ModelViewSet):
     search_fields = ('^name',)
 
 
-class CustomFilter(django_filters.FilterSet):
-    author = django_filters.ModelChoiceFilter(queryset=User.objects.all())
-    tags = django_filters.ModelMultipleChoiceFilter(
-        field_name='tags__slug',
-        to_field_name='slug',
-        queryset=Tag.objects.all())
-    is_favorited = django_filters.BooleanFilter(method='filter_is_favorited')
-
-    def filter_is_favorited(self, queryset, name, value):
-        if value:
-            return queryset.filter(favorites__user=self.request.user)
-        return queryset
-
-    class Meta:
-        model = Recipe
-        fields = ('tags', 'author')
-
-
 class RecipeGetViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeGetSerializer
     pagination_class = PageNumberPagination
-    filter_class = CustomFilter
+    filterset_class = CustomFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

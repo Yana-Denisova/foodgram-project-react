@@ -10,7 +10,7 @@ class TagAdmin(admin.ModelAdmin):
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('name', 'measurement_unit')
+    list_display = ('pk', 'name', 'measurement_unit')
 
 
 class IngredientAmountInLine(admin.TabularInline):
@@ -19,7 +19,7 @@ class IngredientAmountInLine(admin.TabularInline):
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('author', 'image', 'name', 'text', 'cooking_time',)
+    list_display = ('pk', 'author', 'image', 'name', 'text', 'cooking_time')
     inlines = (IngredientAmountInLine,)
     list_filter = ('tags', 'name')
 
