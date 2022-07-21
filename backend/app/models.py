@@ -6,15 +6,15 @@ from users.models import User
 
 class Tag(models.Model):
     name = models.CharField(
-        max_length=150, unique=True, blank=False,
-        null=False, verbose_name='Название тега')
+        max_length=150, unique=True,
+        verbose_name='Название тега')
     color = models.CharField(
         max_length=200,
-        unique=True, blank=False,
-        null=False, verbose_name='Цвет тега')
+        unique=True,
+        verbose_name='Цвет тега')
     slug = models.CharField(
-        max_length=150, unique=True, blank=False,
-        null=False, verbose_name='Слаг')
+        max_length=150, unique=True,
+        verbose_name='Слаг')
 
     class Meta:
         verbose_name = 'Тег'
@@ -56,12 +56,12 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag, related_name='recipes',
         verbose_name='Тег', db_index=True)
-    image = models.ImageField(
-        'Картинка',
-        upload_to='recipes/images/',
-        blank=True,
-        null=True
-    )
+    #image = models.ImageField(
+        #'Картинка',
+        #upload_to='recipes/images/',
+        #blank = True,
+        #null = True,
+    #)
     name = models.CharField(
         max_length=200,  db_index=True,
         verbose_name='Название')
@@ -73,12 +73,12 @@ class Recipe(models.Model):
             MinValueValidator(1, 'Минимальное время приготовления 1 минута'),
         ])
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return self.name
 
 
 class IngredientAmount(models.Model):
@@ -99,6 +99,12 @@ class IngredientAmount(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredients', 'recipe'],
+                name='unique_ingredient_recipe'
+            )
+        ]
 
     def __str__(self):
         return str(self.amount)
@@ -121,7 +127,8 @@ class Favorite(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['subscriber', 'recipe'], name='unique_favorite'
+                fields=['subscriber', 'recipe'],
+                name='unique_favorite'
             )
         ]
 
@@ -143,7 +150,8 @@ class ShoppingCart(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['shopper', 'recipe'], name='unique_favorite_2'
+                fields=['shopper', 'recipe'],
+                name='unique_shopper_recipe'
             )
         ]
 

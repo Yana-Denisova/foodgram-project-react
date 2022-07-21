@@ -10,7 +10,6 @@ from rest_framework.filters import SearchFilter
 from djoser.views import UserViewSet
 from fpdf import FPDF
 
-
 from app.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
 from .paginations import CustomPagination

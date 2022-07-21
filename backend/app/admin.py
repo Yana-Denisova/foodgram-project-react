@@ -19,7 +19,7 @@ class IngredientAmountInLine(admin.TabularInline):
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'author', 'image', 'name', 'text', 'cooking_time')
+    list_display = ('pk', 'author', 'name', 'text', 'cooking_time')
     inlines = (IngredientAmountInLine,)
     list_filter = ('tags', 'name')
 
