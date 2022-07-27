@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
+from django.db import IntegrityError
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -12,12 +13,14 @@ from fpdf import FPDF
 
 from app.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
+from .permissions import AuthorOrReadOnly
 from .paginations import CustomPagination
 from .filters import CustomFilter
-from .serializers import (CustomUserSerializer, FavoriteSerializer,
+from .serializers import (CustomUserSerializer, TagSerializer,
                           FollowerListSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
-                          ShoppingCartSerializer, TagSerializer,)
+                          AddFavoriteSerializer, RecipeSerializer,
+                          AddShoppingCartSerializer)
 
 
 class CustomUserViewset(UserViewSet):
@@ -26,11 +29,9 @@ class CustomUserViewset(UserViewSet):
     serializer_class = CustomUserSerializer
     pagination_class = CustomPagination
 
-    @action(detail=False, url_path='subscriptions')
+    @action(detail=False, url_path='subscriptions',
+            permission_classes=(AuthorOrReadOnly,))
     def subscriptions(self, request):
-        if request.user.is_anonymous:
-            return Response('Пользователь не авторизован',
-                            status=status.HTTP_401_UNAUTHORIZED)
         queryset = Follow.objects.all()
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -42,22 +43,20 @@ class CustomUserViewset(UserViewSet):
 
     @action(
         methods=['POST', 'DELETE'], detail=True,
-        url_path='subscribe')
+        url_path='subscribe', permission_classes=(AuthorOrReadOnly,))
     def subscribe(self, request, id):
-        if request.user.is_anonymous:
-            return Response('Пользователь не авторизован',
-                            status=status.HTTP_401_UNAUTHORIZED)
         serializer = FollowerListSerializer(data=request.data)
         serializer.is_valid()
         author = get_object_or_404(User, pk=id)
         user = request.user
         if request.method == 'POST':
-            if author == user:
-                return Response({
-                    'errors': 'Нельзя подписаться на себя'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            Follow.objects.get_or_create(user=user, author=author)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            try:
+                Follow.objects.get_or_create(user=user, author=author)
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+            except IntegrityError:
+                return Response('Нельзя подписаться на себя',
+                                status=status.HTTP_400_BAD_REQUEST)
         follow = get_object_or_404(Follow, user=user, author=author)
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -91,35 +90,43 @@ class RecipeGetViewSet(viewsets.ModelViewSet):
             return RecipeGetSerializer
         return RecipePostSerializer
 
+    def add_obj(self, request, pk, my_serializer, my_model):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        user = self.request.user
+        data = {}
+        data['recipe'] = recipe.pk
+        data['subscriber'] = user.pk
+        if request.method == 'POST':
+            serializer = my_serializer(data=data, context={'request': request})
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                serializer = RecipeSerializer(
+                            recipe, context={'request': request})
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+        obj = get_object_or_404(my_model, subscriber=user, recipe=recipe)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(
         methods=['POST', 'DELETE'], detail=True,
         url_path='favorite')
     def favorite(self, request, pk):
-        if request.user.is_anonymous:
-            return Response('Пользователь не авторизован',
-                            status=status.HTTP_401_UNAUTHORIZED)
-        serializer = FavoriteSerializer(data=request.data)
-        serializer.is_valid()
-        recipe = get_object_or_404(Recipe, pk=pk)
-        user = request.user
-        if request.method == 'POST':
-            if Favorite.objects.filter(recipe=recipe,
-                                       subscriber=user).exists():
-                return Response({
-                    'errors': 'Рецепт уже есть в избранном'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            Favorite.objects.create(subscriber=user, recipe=recipe)
-            return Response(f'Рецепт {recipe.name} добавлен в избранное',
-                            serializer.data, status=status.HTTP_201_CREATED)
-        favorite = get_object_or_404(Favorite, subscriber=user, recipe=recipe)
-        favorite.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return self.add_obj(request, pk,
+                            my_serializer=AddFavoriteSerializer,
+                            my_model=Favorite)
 
-    @action(detail=False, url_path='download_shopping_cart')
+    @action(
+        methods=['POST', 'DELETE'], detail=True,
+        url_path='shopping_cart')
+    def shopping_cart(self, request, pk):
+        return self.add_obj(request, pk,
+                            my_serializer=AddShoppingCartSerializer,
+                            my_model=ShoppingCart)
+
+    @action(detail=False, url_path='download_shopping_cart',
+            permission_classes=(AuthorOrReadOnly,))
     def download_shopping_cart(self, request):
-        if request.user.is_anonymous:
-            return Response('Пользователь не авторизован',
-                            status=status.HTTP_401_UNAUTHORIZED)
         pdf = FPDF(orientation="P", unit="mm", format="A4")
         pdf.add_page()
         pdf.add_font('DejaVu',
@@ -140,27 +147,3 @@ class RecipeGetViewSet(viewsets.ModelViewSet):
         response['Content-Disposition'] = (
             'attachment; filename="shopping_cart.pdf"')
         return response
-
-    @action(
-        methods=['POST', 'DELETE'], detail=True,
-        url_path='shopping_cart')
-    def shopping_cart(self, request, pk):
-        if request.user.is_anonymous:
-            return Response('Пользователь не авторизован',
-                            status=status.HTTP_401_UNAUTHORIZED)
-        serializer = ShoppingCartSerializer(data=request.data)
-        serializer.is_valid()
-        recipe = get_object_or_404(Recipe, pk=pk)
-        user = request.user
-        if request.method == 'DELETE':
-            if not ShoppingCart.objects.filter(
-                    recipe=recipe, shopper=user).exists():
-                return Response({
-                    'errors': 'Такого рецепта нет в списке'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            shopping_cart = get_object_or_404(
-                ShoppingCart, shopper=user, recipe=recipe)
-            shopping_cart.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        ShoppingCart.objects.get_or_create(shopper=user, recipe=recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)

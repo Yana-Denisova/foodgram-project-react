@@ -56,12 +56,12 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag, related_name='recipes',
         verbose_name='Тег', db_index=True)
-    #image = models.ImageField(
-        #'Картинка',
-        #upload_to='recipes/images/',
-        #blank = True,
-        #null = True,
-    #)
+    image = models.ImageField(
+        'Картинка',
+        upload_to='recipes/images/',
+        blank=True,
+        null=True,
+    )
     name = models.CharField(
         max_length=200,  db_index=True,
         verbose_name='Название')
@@ -134,7 +134,7 @@ class Favorite(models.Model):
 
 
 class ShoppingCart(models.Model):
-    shopper = models.ForeignKey(
+    subscriber = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='Shopping',
@@ -150,7 +150,7 @@ class ShoppingCart(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['shopper', 'recipe'],
+                fields=['subscriber', 'recipe'],
                 name='unique_shopper_recipe'
             )
         ]

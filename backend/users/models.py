@@ -1,4 +1,6 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.db.models import Q, F
 from django.db import models
 
 
@@ -31,5 +33,12 @@ class Follow(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'], name='unique_follow'
-            )
+            ),
+            models.CheckConstraint(
+                check=~Q(user=F('author')),
+                name='dont_follow_yourself')
         ]
+
+    def clean(self):
+        if self.user == self.author:
+            raise ValidationError('Нельзя подписаться на себя')

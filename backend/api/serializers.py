@@ -88,20 +88,53 @@ class RecipePostSerializer(serializers.ModelSerializer):
     ingredients = AmountSerializerPost(
         source='ingredient_amount',
         many=True,)
-    #image = Base64ImageField()
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = '__all__'
-        #read_only_fields = ('image',)
-    
+        read_only_fields = ('image',)
+
+    def validate_tags(self, value):
+        tags_list = []
+        for tag in value:
+            if not tag:
+                raise serializers.ValidationError(
+                    'Необходимо указать теги')
+            if tag in tags_list:
+                raise serializers.ValidationError(
+                    'Нельзя указывать 2 одинаковых ингредиента')
+            tags_list.append(tag)
+        return value
+
+    def validate(self, data):
+        print(data)
+        ingredients = data['ingredient_amount']
+
+        if not ingredients:
+            raise serializers.ValidationError(
+                'Необходимо ввести ингредиенты')
+        ingredients_list = []
+        for ingredient_value in ingredients:
+            ingredient_id = ingredient_value['ingredients']
+            if ingredient_id in ingredients_list:
+                raise serializers.ValidationError(
+                    'Ингридиенты должны быть уникальными')
+            ingredients_list.append(ingredient_id)
+            if int(ingredient_value['amount']) <= 0:
+                raise serializers.ValidationError(
+                    'Значение количества должно быть больше 0')
+        return data
+
     def add_ingredients(self, ingredients_list, recipe):
         return [IngredientAmount(
                 ingredients=get_object_or_404(
-                                Ingredient, pk=ingredient['ingredients']['id']),
+                                Ingredient,
+                                pk=ingredient['ingredients']['id']),
                 recipe=recipe,
-                amount=ingredient['amount']) for ingredient in ingredients_list]
-        
+                amount=ingredient['amount'])
+                for ingredient in ingredients_list]
+
     def create(self, validated_data, *args):
         ingredients_list = validated_data.pop('ingredient_amount')
         tags = validated_data.pop('tags')
@@ -138,7 +171,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         return Favorite.objects.filter(
             subscriber=user.id, recipe=obj.id).exists()
-        
+
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
         return ShoppingCart.objects.filter(
@@ -147,7 +180,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
-                  'is_in_shopping_cart', 'name', 'text',
+                  'is_in_shopping_cart', 'name', 'image', 'text',
                   'cooking_time')
 
 
@@ -171,3 +204,39 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShoppingCart
         fields = ('id', 'name', 'image', 'cooking_time')
+
+
+class AddFavoriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Favorite
+        fields = ('recipe', 'subscriber')
+
+    def validate(self, data):
+        recipe = data['recipe']
+        subscriber = data['subscriber']
+        if Favorite.objects.filter(
+            recipe=recipe,
+            subscriber=subscriber
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в избранное')
+        return data
+
+
+class AddShoppingCartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ShoppingCart
+        fields = ('recipe', 'subscriber')
+
+    def validate(self, data):
+        recipe = data['recipe']
+        subscriber = data['subscriber']
+        if ShoppingCart.objects.filter(
+            recipe=recipe,
+            subscriber=subscriber
+        ).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже добавлен в cписок покупок')
+        return data
