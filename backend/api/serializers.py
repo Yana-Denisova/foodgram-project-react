@@ -108,9 +108,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        print(data)
         ingredients = data['ingredient_amount']
-
         if not ingredients:
             raise serializers.ValidationError(
                 'Необходимо ввести ингредиенты')
