@@ -38,6 +38,20 @@ class CustomUserSerializer(UserSerializer):
         model = User
 
 
+class FollowerCreateSerializer(UserSerializer):
+
+    class Meta:
+        model = Follow
+        fields = ('author', 'user')
+
+    def validate(self, data):
+        print(data)
+        if data['author'] == data['user']:
+            raise serializers.ValidationError(
+                'Нельзя подписываться на себя')
+        return data
+
+
 class FollowerListSerializer(UserSerializer):
     email = serializers.CharField(source='author.email')
     id = serializers.CharField(source='author.id')
@@ -171,7 +185,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
         return ShoppingCart.objects.filter(
-            shopper=user.id, recipe=obj.id).exists()
+            subscriber=user.id, recipe=obj.id).exists()
 
     class Meta:
         model = Recipe
@@ -188,7 +202,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Favorite
-        fields = ('id', 'name', 'image', 'cooking_time')
+        fields = ('id', 'name', 'cooking_time')
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -199,7 +213,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCart
-        fields = ('id', 'name', 'image', 'cooking_time')
+        fields = ('id', 'name', 'cooking_time')
 
 
 class AddFavoriteSerializer(serializers.ModelSerializer):
@@ -220,7 +234,7 @@ class AddFavoriteSerializer(serializers.ModelSerializer):
         return data
 
 
-class AddShoppingCartSerializer(serializers.ModelSerializer):
+class AddShoppingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCart

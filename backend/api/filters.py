@@ -21,7 +21,7 @@ class CustomFilter(FilterSet):
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
         if value:
-            return queryset.filter(Shopping__shopper=self.request.user)
+            return queryset.filter(Shopping__subscriber=self.request.user)
         return queryset
 
     class Meta:

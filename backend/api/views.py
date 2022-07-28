@@ -1,7 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
-from django.db import IntegrityError
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -20,7 +19,7 @@ from .serializers import (CustomUserSerializer, TagSerializer,
                           FollowerListSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
                           AddFavoriteSerializer, RecipeSerializer,
-                          AddShoppingCartSerializer)
+                          AddShoppingSerializer, FollowerCreateSerializer)
 
 
 class CustomUserViewset(UserViewSet):
@@ -45,18 +44,19 @@ class CustomUserViewset(UserViewSet):
         methods=['POST', 'DELETE'], detail=True,
         url_path='subscribe', permission_classes=(AuthorOrReadOnly,))
     def subscribe(self, request, id):
-        serializer = FollowerListSerializer(data=request.data)
-        serializer.is_valid()
         author = get_object_or_404(User, pk=id)
         user = request.user
+        data = {}
+        data['author'] = author.pk
+        data['user'] = user.pk
         if request.method == 'POST':
-            try:
-                Follow.objects.get_or_create(user=user, author=author)
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            except IntegrityError:
-                return Response('Нельзя подписаться на себя',
-                                status=status.HTTP_400_BAD_REQUEST)
+            serializer = FollowerCreateSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            Follow.objects.get_or_create(user=user, author=author)
+            serializer = FollowerListSerializer(data=request.data)
+            serializer.is_valid()
+            return Response(serializer.data,
+                            status=status.HTTP_201_CREATED)
         follow = get_object_or_404(Follow, user=user, author=author)
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -90,21 +90,24 @@ class RecipeGetViewSet(viewsets.ModelViewSet):
             return RecipeGetSerializer
         return RecipePostSerializer
 
-    def add_obj(self, request, pk, my_serializer, my_model):
+    def add_delete_obj(self, request, pk, fav_shop_serializer,
+                       fav_shop_model):
         recipe = get_object_or_404(Recipe, pk=pk)
         user = self.request.user
         data = {}
         data['recipe'] = recipe.pk
         data['subscriber'] = user.pk
         if request.method == 'POST':
-            serializer = my_serializer(data=data, context={'request': request})
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                serializer = RecipeSerializer(
-                            recipe, context={'request': request})
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-        obj = get_object_or_404(my_model, subscriber=user, recipe=recipe)
+            serializer = fav_shop_serializer(data=data,
+                                             context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            serializer = RecipeSerializer(
+                        recipe, context={'request': request})
+            return Response(serializer.data,
+                            status=status.HTTP_201_CREATED)
+        obj = get_object_or_404(fav_shop_model, subscriber=user,
+                                recipe=recipe)
         obj.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -112,17 +115,17 @@ class RecipeGetViewSet(viewsets.ModelViewSet):
         methods=['POST', 'DELETE'], detail=True,
         url_path='favorite')
     def favorite(self, request, pk):
-        return self.add_obj(request, pk,
-                            my_serializer=AddFavoriteSerializer,
-                            my_model=Favorite)
+        return self.add_delete_obj(request, pk,
+                                   fav_shop_serializer=AddFavoriteSerializer,
+                                   fav_shop_model=Favorite)
 
     @action(
         methods=['POST', 'DELETE'], detail=True,
         url_path='shopping_cart')
     def shopping_cart(self, request, pk):
-        return self.add_obj(request, pk,
-                            my_serializer=AddShoppingCartSerializer,
-                            my_model=ShoppingCart)
+        return self.add_delete_obj(request, pk,
+                                   fav_shop_serializer=AddShoppingSerializer,
+                                   fav_shop_model=ShoppingCart)
 
     @action(detail=False, url_path='download_shopping_cart',
             permission_classes=(AuthorOrReadOnly,))
