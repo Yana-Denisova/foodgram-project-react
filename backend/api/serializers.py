@@ -44,7 +44,6 @@ class FollowerCreateSerializer(UserSerializer):
         fields = ('author', 'user')
 
     def validate(self, data):
-        print(data)
         if data['author'] == data['user']:
             raise serializers.ValidationError(
                 'Нельзя подписываться на себя')
