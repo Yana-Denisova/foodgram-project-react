@@ -39,7 +39,6 @@ class CustomUserSerializer(UserSerializer):
 
 
 class FollowerCreateSerializer(UserSerializer):
-
     class Meta:
         model = Follow
         fields = ('author', 'user')
