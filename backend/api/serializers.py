@@ -1,11 +1,11 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers
 from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
 
-from users.models import Follow, User
 from app.models import (Favorite, Ingredient, IngredientAmount, Recipe,
                         ShoppingCart, Tag)
+from users.models import Follow, User
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -137,13 +137,11 @@ class RecipePostSerializer(serializers.ModelSerializer):
         return data
 
     def add_ingredients(self, ingredients_list, recipe):
-        return IngredientAmount.objects.bulk_create([IngredientAmount(
-                ingredients=get_object_or_404(
-                                Ingredient,
-                                pk=ingredient['ingredients']['id']),
-                recipe=recipe,
-                amount=ingredient['amount'])
-                for ingredient in ingredients_list])
+        return IngredientAmount.objects.bulk_create(
+            [IngredientAmount(ingredients=get_object_or_404(Ingredient,
+             pk=ingredient['ingredients']['id']),
+                recipe=recipe, amount=ingredient['amount'])
+             for ingredient in ingredients_list])
 
     def create(self, validated_data, *args):
         ingredients_list = validated_data.pop('ingredient_amount')

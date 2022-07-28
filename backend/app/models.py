@@ -1,5 +1,5 @@
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.db import models
 
 from users.models import User
 
@@ -26,7 +26,7 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=200,  db_index=True,
+        max_length=200, db_index=True,
         verbose_name='Ингредиент')
     measurement_unit = models.CharField(
         max_length=25, verbose_name='Единицы измерения')
@@ -63,7 +63,7 @@ class Recipe(models.Model):
         null=True,
     )
     name = models.CharField(
-        max_length=200,  db_index=True,
+        max_length=200, db_index=True,
         verbose_name='Название')
     text = models.TextField(
         verbose_name='Текст рецепта')

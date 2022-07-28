@@ -1,25 +1,26 @@
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.db.models import Sum
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.filters import SearchFilter
 from djoser.views import UserViewSet
 from fpdf import FPDF
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 from app.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
-from .permissions import AuthorOrReadOnly
-from .paginations import CustomPagination
+
 from .filters import CustomFilter
-from .serializers import (CustomUserSerializer, TagSerializer,
+from .paginations import CustomPagination
+from .permissions import AuthorOrReadOnly
+from .serializers import (AddFavoriteSerializer, AddShoppingSerializer,
+                          CustomUserSerializer, FollowerCreateSerializer,
                           FollowerListSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
-                          AddFavoriteSerializer, RecipeSerializer,
-                          AddShoppingSerializer, FollowerCreateSerializer)
+                          RecipeSerializer, TagSerializer)
 
 
 class CustomUserViewset(UserViewSet):
@@ -102,8 +103,8 @@ class RecipeGetViewSet(viewsets.ModelViewSet):
                                              context={'request': request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            serializer = RecipeSerializer(
-                        recipe, context={'request': request})
+            serializer = RecipeSerializer(recipe,
+                                          context={'request': request})
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
         obj = get_object_or_404(fav_shop_model, subscriber=user,
