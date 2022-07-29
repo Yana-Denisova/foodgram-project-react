@@ -8,9 +8,8 @@ services:
     env_file:
       - ./.env
   web:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+    image: denisovayana/foodgram:v1
+    restart: always
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/ 
