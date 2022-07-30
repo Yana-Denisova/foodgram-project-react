@@ -1,11 +1,11 @@
 FROM python:3.7-slim
 
-WORKDIR /project
+WORKDIR /app
 
-COPY requirements.txt /project
+COPY requirements.txt /app
 
-RUN pip3 install -r /project/requirements.txt --no-cache-dir
+RUN pip3 install -r /app/requirements.txt --no-cache-dir
 
-COPY . /project
+COPY . /app
  
 CMD ["gunicorn", "backend.wsgi:application", "--bind", "0:8000" ]
