@@ -137,7 +137,7 @@ class RecipeGetViewSet(viewsets.ModelViewSet):
                      fname='static/fonts/DejaVuSansMono.ttf', uni=True)
         pdf.set_font('DejaVu', size=16)
         shop = ShoppingCart.objects.filter(
-            shopper=request.user).select_related('recipe').values(
+            subscriber=request.user).select_related('recipe').values(
                 'recipe__ingredients__name',
                 'recipe__ingredients__measurement_unit').annotate(
                     amount=Sum('recipe__ingredient_amount'))
