@@ -31,6 +31,10 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ('email', 'username')
 
 
+class IngredientAmountAdmin(admin.ModelAdmin):
+    list_display = ('recipe', 'ingredients', 'amount')
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Follow)
 admin.site.register(Favorite)
@@ -38,4 +42,4 @@ admin.site.register(ShoppingCart)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
-admin.site.register(IngredientAmount)
+admin.site.register(IngredientAmount, IngredientAmountAdmin)
