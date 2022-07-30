@@ -156,7 +156,6 @@ class RecipePostSerializer(serializers.ModelSerializer):
         ingredients_list = validated_data.pop('ingredient_amount')
         tags = validated_data.pop('tags')
         instance.tags.set(tags)
-        IngredientAmount.objects.filter(recipe=instance).delete()
         self.add_ingredients(ingredients_list, recipe=instance)
         return super().update(instance, validated_data)
 
