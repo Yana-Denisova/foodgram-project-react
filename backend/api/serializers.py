@@ -150,16 +150,15 @@ class RecipePostSerializer(serializers.ModelSerializer):
         recipe.tags.set(tags)
         self.add_ingredients(ingredients_list, recipe)
         return recipe
-
+    
     def update(self, instance, validated_data):
-        IngredientAmount.objects.filter(recipe=instance).delete()
-        instance.tags.clear()
         ingredients_list = validated_data.pop('ingredient_amount')
         tags = validated_data.pop('tags')
+        super().update(instance, validated_data)
         instance.tags.set(tags)
+        IngredientAmount.objects.filter(recipe=instance).delete()
         self.add_ingredients(ingredients_list, recipe=instance)
-        return super().update(instance, validated_data)
-
+        return instance
 
 class RecipeGetSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
