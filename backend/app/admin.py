@@ -2,7 +2,9 @@ from django.contrib import admin
 
 from users.models import Follow, User
 
-from .models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .models import (Favorite, Ingredient,
+                     Recipe, ShoppingCart,
+                     Tag, IngredientAmount)
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -36,3 +38,4 @@ admin.site.register(ShoppingCart)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
+admin.site.register(IngredientAmount)
