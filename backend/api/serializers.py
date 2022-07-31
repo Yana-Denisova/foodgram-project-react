@@ -140,23 +140,40 @@ class RecipePostSerializer(serializers.ModelSerializer):
             IngredientAmount.objects.create(
                 recipe=recipe, ingredients_id=ingredient['ingredients']['id'],
                 amount=ingredient['amount'])
-
-    def create(self, validated_data, *args):
-        ingredients_list = validated_data.pop('ingredient_amount')
+    
+    def create(self, validated_data):
+        ingredients = validated_data.pop('ingredientamount_set')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.add_ingredients(ingredients_list, recipe)
+        self.add_ingredients(ingredients, recipe)
         return recipe
 
     def update(self, instance, validated_data):
-        ingredients_list = validated_data.pop('ingredient_amount')
-        tags = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredientamount_set')
+        tags_data = validated_data.pop('tags')
         super().update(instance, validated_data)
-        instance.tags.set(tags)
+        instance.tags.set(tags_data)
         IngredientAmount.objects.filter(recipe=instance).delete()
-        self.add_ingredients(ingredients_list, recipe=instance)
+        self.add_ingredients(ingredients_data, instance)
         return instance
+
+    #def create(self, validated_data, *args):
+        #ingredients_list = validated_data.pop('ingredient_amount')
+        #tags = validated_data.pop('tags')
+        #recipe = Recipe.objects.create(**validated_data)
+        #recipe.tags.set(tags)
+        #self.add_ingredients(ingredients_list, recipe)
+        #return recipe
+
+    #def update(self, instance, validated_data):
+        #ingredients_list = validated_data.pop('ingredient_amount')
+        #tags = validated_data.pop('tags')
+        #super().update(instance, validated_data)
+        #instance.tags.set(tags)
+        #IngredientAmount.objects.filter(recipe=instance).delete()
+        #self.add_ingredients(ingredients_list, recipe=instance)
+        #return instance
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):
