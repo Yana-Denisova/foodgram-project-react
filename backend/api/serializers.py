@@ -119,29 +119,28 @@ class RecipePostSerializer(serializers.ModelSerializer):
             tags_list.append(tag)
         return value
 
-    def validate_ingredients(self, value):
-        print(value)
-        ingr_list = []
-        for data in value:
-            ingr_id = data['ingredients']
-            if not data:
-                raise serializers.ValidationError('Укажите Ингредиенты')
-            if ingr_id in ingr_list:
+    def validate(self, data):
+        ingredients = data['ingredient_amount']
+        if not ingredients:
+            raise serializers.ValidationError(
+                'Необходимо ввести ингредиенты')
+        ingredients_list = []
+        for ingredient_value in ingredients:
+            ingredient_id = ingredient_value['ingredients']
+            if ingredient_id in ingredients_list:
                 raise serializers.ValidationError(
-                    'Нельзя указывать 2 одинаковых ингредиента'
-                )
-            ingr_list.append(ingr_id)
-            if int(data['amount']) <= 0:
+                    'Ингридиенты должны быть уникальными')
+            ingredients_list.append(ingredient_id)
+            if int(ingredient_value['amount']) <= 0:
                 raise serializers.ValidationError(
-                    f'Укажите кол-во для ингредиента id={ingr_id} больше 0'
-                )
-        return value
+                    'Значение количества должно быть больше 0')
+        return data
 
-    def add_ingredients(self, ingredients, recipe):
-        for ingredient in ingredients:
-            IngredientAmount.objects.create(
-                recipe=recipe, ingredients_id=ingredient['ingredients']['id'],
-                amount=ingredient['amount'])
+    def add_ingredients(self, ingredients_list, recipe):
+        return IngredientAmount.objects.bulk_create(
+            [IngredientAmount(ingredients_id=ingredient['ingredients']['id'],
+                              recipe=recipe, amount=ingredient['amount'])
+             for ingredient in ingredients_list])
 
     def create(self, validated_data, *args):
         ingredients_list = validated_data.pop('ingredient_amount')
