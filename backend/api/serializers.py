@@ -122,7 +122,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
         print(value)
         ingr_list = []
         for data in value:
-            ingr_id = data['id']
+            ingr_id = data['ingredients']
             if not data:
                 raise serializers.ValidationError('Укажите Ингредиенты')
             if ingr_id in ingr_list:
