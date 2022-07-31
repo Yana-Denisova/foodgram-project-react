@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
@@ -137,9 +138,10 @@ class RecipePostSerializer(serializers.ModelSerializer):
 
     def add_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
-            print(ingredient)
+            ing = get_object_or_404(Ingredient,
+                                    pk=ingredient['ingredients']['id'])
             IngredientAmount.objects.create(
-                recipe=recipe, ingredients=ingredient['ingredients']['id'],
+                recipe=recipe, ingredients=ing,
                 amount=ingredient['amount'])
 
     def create(self, validated_data, *args):
