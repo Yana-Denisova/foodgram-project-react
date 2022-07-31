@@ -138,9 +138,8 @@ class RecipePostSerializer(serializers.ModelSerializer):
 
     def add_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
-            ing = Ingredient.objects.get(pk=ingredient['ingredients']['id'])
             IngredientAmount.objects.create(
-                recipe=recipe, ingredients=ing,
+                recipe=recipe, ingredients_id=ingredient['ingredients']['id'],
                 amount=ingredient['amount'])
 
     def create(self, validated_data, *args):
