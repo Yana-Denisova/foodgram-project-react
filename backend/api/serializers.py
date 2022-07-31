@@ -73,6 +73,7 @@ class FollowerListSerializer(UserSerializer):
 
 
 class AmountSerializerGet(serializers.ModelSerializer):
+    id = serializers.CharField(source='ingredients.id')
     name = serializers.CharField(source='ingredients.name')
     measurement_unit = serializers.CharField(
         source='ingredients.measurement_unit')
