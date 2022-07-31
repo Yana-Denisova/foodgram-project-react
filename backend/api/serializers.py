@@ -135,11 +135,11 @@ class RecipePostSerializer(serializers.ModelSerializer):
                     'Значение количества должно быть больше 0')
         return data
 
-    def add_ingredients(self, ingredients_list, recipe):
-        return IngredientAmount.objects.bulk_create(
-            [IngredientAmount(ingredients=ingredient['ingredients']['id'],
-                              recipe=recipe, amount=ingredient['amount'])
-             for ingredient in ingredients_list])
+    def add_ingredients(self, ingredients, recipe):
+        for ingredient in ingredients:
+            IngredientAmount.objects.create(
+                recipe=recipe, ingredient_id=ingredient['ingredient']['id'],
+                amount=ingredient['amount'])
 
     def create(self, validated_data, *args):
         ingredients_list = validated_data.pop('ingredient_amount')
