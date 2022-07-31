@@ -6,7 +6,6 @@ from fpdf import FPDF
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -80,7 +79,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class RecipeGetViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeGetSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
     filterset_class = CustomFilter
 
     def perform_create(self, serializer):
