@@ -117,7 +117,7 @@ class RecipePostSerializer(serializers.ModelSerializer):
                     'Нельзя указывать 2 одинаковых ингредиента')
             tags_list.append(tag)
         return value
-    
+
     def validate_ingredients(self, value):
         print(value)
         ingr_list = []
