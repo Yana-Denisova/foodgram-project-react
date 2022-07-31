@@ -117,23 +117,24 @@ class RecipePostSerializer(serializers.ModelSerializer):
                     'Нельзя указывать 2 одинаковых ингредиента')
             tags_list.append(tag)
         return value
-
-    def validate(self, data):
-        ingredients = data['ingredient_amount']
-        if not ingredients:
-            raise serializers.ValidationError(
-                'Необходимо ввести ингредиенты')
-        ingredients_list = []
-        for ingredient_value in ingredients:
-            ingredient_id = ingredient_value['ingredients']
-            if ingredient_id in ingredients_list:
+    
+    def validate_ingredients(self, value):
+        print(value)
+        ingr_list = []
+        for data in value:
+            ingr_id = data['id'].pk
+            if not data:
+                raise serializers.ValidationError('Укажите Ингредиенты')
+            if ingr_id in ingr_list:
                 raise serializers.ValidationError(
-                    'Ингридиенты должны быть уникальными')
-            ingredients_list.append(ingredient_id)
-            if int(ingredient_value['amount']) <= 0:
+                    'Нельзя указывать 2 одинаковых ингредиента'
+                )
+            ingr_list.append(ingr_id)
+            if int(data['amount']) <= 0:
                 raise serializers.ValidationError(
-                    'Значение количества должно быть больше 0')
-        return data
+                    f'Укажите кол-во для ингредиента id={ingr_id} больше 0'
+                )
+        return value
 
     def add_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
