@@ -31,7 +31,7 @@ class CustomUserViewset(UserViewSet):
     @action(detail=False, url_path='subscriptions',
             permission_classes=(AuthorOrReadOnly,))
     def subscriptions(self, request):
-        queryset = Follow.objects.all()
+        queryset = Follow.objects.filter(user=self.request.user)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = FollowerListSerializer(page, many=True)
@@ -54,7 +54,7 @@ class CustomUserViewset(UserViewSet):
             serializer.is_valid(raise_exception=True)
             Follow.objects.get_or_create(user=user, author=author)
             serializer = FollowerListSerializer(data=request.data)
-            serializer.is_valid()
+            serializer.is_valid(raise_exception=True)
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
         follow = get_object_or_404(Follow, user=user, author=author)
