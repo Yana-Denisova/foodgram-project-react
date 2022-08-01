@@ -77,6 +77,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 class RecipeGetViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
+    permission_classes = [AllowAny]
     serializer_class = RecipeGetSerializer
     pagination_class = CustomPagination
     filterset_class = CustomFilter
