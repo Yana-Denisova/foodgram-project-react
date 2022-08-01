@@ -50,15 +50,14 @@ class CustomUserViewset(UserViewSet):
         if request.method == 'POST':
             serializer = FollowerCreateSerializer(data=data)
             serializer.is_valid(raise_exception=True)
-            Follow.objects.get_or_create(user=user, author=author)
-            serializer = FollowerListSerializer(author,
+            obj, _ = Follow.objects.get_or_create(user=user, author=author)
+            serializer = FollowerListSerializer(obj,
                                                 context={'request': request})
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
         follow = get_object_or_404(Follow, user=user, author=author)
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()

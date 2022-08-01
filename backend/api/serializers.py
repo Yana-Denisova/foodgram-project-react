@@ -63,16 +63,17 @@ class FollowerListSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_recipes_count(self, obj):
-        return Recipe.objects.filter(author=obj.id).count()
+        return Recipe.objects.filter(author=obj.author).count()
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        return Follow.objects.filter(author=obj.id, user=user).exists()
+        return Follow.objects.filter(author=obj.author, user=user).exists()
 
     def get_recipes(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
-        queryset = Recipe.objects.filter(author=obj.id)
+        queryset = Recipe.objects.filter(author=obj.author)
+        print(queryset)
         if limit:
             queryset = queryset[:int(limit)]
         return RecipeSerializer(queryset, many=True).data
