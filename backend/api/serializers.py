@@ -29,7 +29,6 @@ class CustomUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
-        print(type(obj))
         user = self.context['request'].user
         return user.is_authenticated and Follow.objects.filter(author=obj.id,
                                                                user=user
@@ -67,7 +66,6 @@ class FollowerListSerializer(UserSerializer):
         return Recipe.objects.filter(author=obj.id).count()
 
     def get_is_subscribed(self, obj):
-        print(type(obj))
         user = self.context['request'].user
         return Follow.objects.filter(author=obj.id, user=user).exists()
 
