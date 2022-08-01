@@ -40,18 +40,19 @@ class CustomUserViewset(UserViewSet):
 
     @action(
         methods=['POST', 'DELETE'], detail=True,
-        url_path='subscribe', permission_classes=(AuthorOrReadOnly,))
+        url_path='subscribe', permission_classes=(IsAuthenticated,))
     def subscribe(self, request, id):
         author = get_object_or_404(User, pk=id)
         user = request.user
         data = {}
         data['author'] = author.pk
         data['user'] = user.pk
+        object = Follow.objects.filter(user=request.user, author=author)
         if request.method == 'POST':
             serializer = FollowerCreateSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             Follow.objects.get_or_create(user=user, author=author)
-            serializer = FollowerListSerializer(data=data,
+            serializer = FollowerListSerializer(data=object,
                                                 context={'request': request})
             serializer.is_valid(raise_exception=True)
             return Response(serializer.data,
