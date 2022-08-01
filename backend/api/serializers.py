@@ -29,7 +29,8 @@ class CustomUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
-        return Follow.objects.filter(author=obj.id).exists()
+        user = self.context['request'].user
+        return Follow.objects.filter(author=obj.id, user=user).exists()
 
     class Meta:
         fields = ('email', 'id', 'username',
@@ -60,8 +61,7 @@ class FollowerListSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     def get_recipes_count(self, obj):
-        author_id = obj.author.id
-        return Recipe.objects.filter(author=author_id).count()
+        return Recipe.objects.filter(author=obj.author).count()
 
     def get_is_subscribed(self, obj):
         return Follow.objects.filter(author=obj.author, user=obj.user).exists()
@@ -178,7 +178,7 @@ class RecipeGetSerializer(serializers.ModelSerializer):
             subscriber=user.id, recipe=obj.id).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        user = self.context['request'].user
+         
         return ShoppingCart.objects.filter(
             subscriber=user.id, recipe=obj.id).exists()
 
