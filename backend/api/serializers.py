@@ -30,7 +30,7 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        return Follow.objects.filter(author=obj.id, user=user).exists()
+        return Follow.objects.filter(author=obj.author, user=user).exists()
 
     class Meta:
         fields = ('email', 'id', 'username',
