@@ -6,7 +6,7 @@ from fpdf import FPDF
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from app.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
@@ -29,16 +29,14 @@ class CustomUserViewset(UserViewSet):
     pagination_class = CustomPagination
 
     @action(detail=False, url_path='subscriptions',
-            permission_classes=(AuthorOrReadOnly,))
+            permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
-        queryset = Follow.objects.filter(user=self.request.user)
+        queryset = Follow.objects.filter(user=request.user)
         page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = FollowerListSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = FollowerListSerializer(queryset, many=True)
-        return Response(serializer.data)
+        serializer = FollowerListSerializer(page,
+                                            many=True,
+                                            context={'request': request})
+        return self.get_paginated_response(serializer.data)
 
     @action(
         methods=['POST', 'DELETE'], detail=True,
