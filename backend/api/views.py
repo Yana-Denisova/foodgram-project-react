@@ -51,7 +51,8 @@ class CustomUserViewset(UserViewSet):
             serializer = FollowerCreateSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             Follow.objects.get_or_create(user=user, author=author)
-            serializer = FollowerListSerializer(data=request.data)
+            serializer = FollowerListSerializer(data=data,
+                                                context={'request': request})
             serializer.is_valid(raise_exception=True)
             return Response(serializer.data,
                             status=status.HTTP_201_CREATED)
