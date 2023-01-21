@@ -18,7 +18,6 @@ Foodgram это Django-проект, что позволило подключи�
 
 ```
 
-
 ## Технологии проекта 
 - [Python](https://www.python.org/)
 - [Django](https://www.djangoproject.com/)
@@ -31,67 +30,63 @@ Foodgram это Django-проект, что позволило подключи�
 - [Yandex.Cloud](https://cloud.yandex.ru/)
 
 
-
 ## Как запустить проект:
 
-Клонировать репозиторий и перейти в него в командной строке:
-
+Перед запуском необходимо склонировать проект:
+```bash
+HTTPS: git clone https://github.com/Yana-Denisova/foodgram-project-react.git
+SSH: git clone git@github.com:Yana-Denisova/foodgram-project-react.git
 ```
-git clone https://github.com/Yana-Denisova/foodgram-project-react.git
+Cоздать и активировать виртуальное окружение:
+```bash
+python -m venv venv
+```
+```bash
+Linux: source venv/bin/activate
+Windows: source venv/Scripts/activate
+```
+И установить зависимости из файла requirements.txt:
+```bash
+python3 -m pip install --upgrade pip
+```
+```bash
+pip install -r requirements.txt
 ```
 
+Проект использует базу данных PostgreSQL.  
+Для подключения и выполненя запросов к базе данных необходимо создать и заполнить файл ".env" с переменными окружения в папке "./infra/".
 
-Пример заполнения .env файла
-```
+Шаблон для заполнения файла ".env":
+```python
 DB_ENGINE=django.db.backends.postgresql
 DB_NAME=postgres
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 DB_HOST=db
 DB_PORT=5432
-SECRET_KEY=j#@2yv698sb@#x=pq4b!^=4ap1!$b7xgpgv3fbpc5@9017!5jx
+SECRET_KEY='Здесь указать секретный ключ'
+ALLOWED_HOSTS='Здесь указать имя или IP хоста' (Для локального запуска - 127.0.0.1)
 ```
 
+
+Соберите контейнеры из папки `infra`:
+```py
+docker-compose up -d
 ```
-cd backend
+- В контейнере **backend**:
+    - выполните миграции;
+    - установите **superuser**;
+    - заполните БД исходными данными:
+
+```py
+docker-compose exec backend python manage.py migrate
+docker-compose exec backend python manage.py createsuperuser
+docker-compose exec backend python manage.py runscript load_ing_data
 ```
 
-Cоздать и активировать виртуальное окружение:
-
-```
-python3 -m venv env
-```
-
-```
-source env/bin/activate
-```
-
-Установить зависимости из файла requirements.txt:
-
-```
-python3 -m pip install --upgrade pip
-```
-
-```
-pip install -r requirements.txt
-```
-
-Выполнить миграции:
-
-```
-python3 manage.py migrate
-```
-
-Запустить проект:
-
-```
-python3 manage.py runserver
-```
 
 ## Авторы проекта
 
-```
 - [Денисова Яна](https://t.me/DenisovaYana) - Backend
 - [Яндекс.Практикум](https://github.com/yandex-praktikum/foodgram-project-react) - Frontend
 
-```
