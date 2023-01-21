@@ -73,11 +73,12 @@ ALLOWED_HOSTS='Здесь указать имя или IP хоста' (Для л
 ```py
 docker-compose up -d
 ```
+```
 - В контейнере **backend**:
     - выполните миграции;
     - установите **superuser**;
     - заполните БД исходными данными:
-
+```
 ```py
 docker-compose exec backend python manage.py migrate
 docker-compose exec backend python manage.py createsuperuser
